@@ -1,0 +1,243 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Styles personnalisés pour aligner les boutons dans la liste des permanents */
+    .table-permanents td {
+        vertical-align: middle; /* Aligne verticalement le contenu des cellules au centre */
+    }
+
+    .table-permanents .btn {
+        margin: 0; /* Enlève les marges par défaut des boutons */
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Tableau de Bord</h1>
+    </div>
+
+    <h2>Affecter un Matériel</h2>
+    <form method="POST" action="{{ path('dashboard') }}">
+        <input type="hidden" name="form_type" value="create_affectation">
+        <div class="form-group">
+            <label for="materiel">Matériel</label>
+            <select id="materiel" name="materiel" class="form-control" required>
+                <option value="" disabled selected>Choisir un matériel</option>
+                {% for materiel in materiels %}
+                    <option value="{{ materiel.reference }}">{{ materiel.reference }} - {{ materiel.type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="permanent">Permanent</label>
+            <select id="permanent" name="permanent" class="form-control" required>
+                <option value="" disabled selected>Choisir un permanent</option>
+                {% for permanent in permanents %}
+                    <option value="{{ permanent.id }}">{{ permanent.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Statut</label>
+            <select id="status" name="status" class="form-control" required>
+                <option value="" disabled selected>Choisir un statut</option>
+                <option value="affecté">Affecté</option>
+                <option value="rendu">Rendu</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Affecter</button>
+    </form>
+
+    <!-- Search bar for Historique des Affectations -->
+    <div class="mt-5">
+        <h2>Historique des Affectations</h2>
+        <form method="GET" action="{{ path('dashboard') }}" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Rechercher dans les affectations..." value="{{ searchTerm }}">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Rechercher</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Matériel</th>
+                <th>Permanent</th>
+                <th>Date d'Affectation</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for affectation in affectations %}
+                <tr>
+                    <td>{{ affectation.materiel.reference }}</td>
+                    <td>{{ affectation.permanent.name }}</td>
+                    <td>{{ affectation.dateAffectation|date('Y-m-d') }}</td>
+                    <td>{{ affectation.status }}</td>
+                    <td class="align-top">
+                        <form method="POST" action="{{ path('dashboard') }}" class="form-inline mb-2">
+                            <input type="hidden" name="form_type" value="edit_affectation">
+                            <input type="hidden" name="id" value="{{ affectation.id }}">
+                            <div class="form-group mr-2">
+                                <label for="materiel">Matériel</label>
+                                <select id="materiel" name="materiel" class="form-control">
+                                    {% for materiel in materiels %}
+                                        <option value="{{ materiel.reference }}" {% if materiel.reference == affectation.materiel.reference %}selected{% endif %}>{{ materiel.reference }} - {{ materiel.type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group mr-2">
+                                <label for="permanent">Permanent</label>
+                                <select id="permanent" name="permanent" class="form-control">
+                                    {% for permanent in permanents %}
+                                        <option value="{{ permanent.id }}" {% if permanent.id == affectation.permanent.id %}selected{% endif %}>{{ permanent.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group mr-2">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" class="form-control" value="{{ affectation.dateAffectation|date('Y-m-d') }}" required>
+                            </div>
+                            <div class="form-group mr-2">
+                                <label for="status">Statut</label>
+                                <select id="status" name="status" class="form-control" required>
+                                    <option value="affecté" {% if affectation.status == 'affecté' %}selected{% endif %}>Affecté</option>
+                                    <option value="rendu" {% if affectation.status == 'rendu' %}selected{% endif %}>Rendu</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Modifier</button>
+                        </form>
+                        <form method="POST" action="{{ path('dashboard') }}" class="delete-form">
+                            <input type="hidden" name="form_type" value="delete_affectation">
+                            <input type="hidden" name="id" value="{{ affectation.id }}">
+                            <button type="submit" class="btn btn-danger delete-button">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">Aucune affectation trouvée</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="mt-5">Liste des Permanents</h2>
+    {% if action == 'create' or (action == 'edit' and type == 'permanent') %}
+        <form method="post" action="{{ path('dashboard') }}">
+            <input type="hidden" name="form_type" value="{{ action == 'create' ? 'create_permanent' : 'edit_permanent' }}">
+            {% if action == 'edit' %}
+                <input type="hidden" name="id" value="{{ id }}">
+            {% endif %}
+            <div class="form-group">
+                <label for="name">Nom</label>
+                <input type="text" id="name" name="name" class="form-control" required value="{{ permanentToEdit ? permanentToEdit.name : '' }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required value="{{ permanentToEdit ? permanentToEdit.email : '' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">{{ action == 'create' ? 'Créer' : 'Modifier' }}</button>
+        </form>
+    {% endif %}
+    
+    <form method="get" action="{{ path('dashboard') }}">
+        <input type="hidden" name="action" value="create">
+        <input type="hidden" name="type" value="permanent">
+        <button type="submit" class="btn btn-success mb-3">Créer un nouveau permanent</button>
+    </form>
+
+    <table class="table table-striped table-permanents">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for permanent in permanents %}
+                <tr>
+                    <td>{{ permanent.name }}</td>
+                    <td>{{ permanent.email }}</td>
+                    <td>
+                        <form method="get" action="{{ path('dashboard') }}" class="d-inline">
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="id" value="{{ permanent.id }}">
+                            <input type="hidden" name="type" value="permanent">
+                            <button type="submit" class="btn btn-warning">Modifier</button>
+                        </form>
+                        <form method="post" action="{{ path('dashboard') }}" class="d-inline">
+                            <input type="hidden" name="form_type" value="delete_permanent">
+                            <input type="hidden" name="id" value="{{ permanent.id }}">
+                            <button type="submit" class="btn btn-danger delete-button" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce permanent?');">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listener for the delete buttons
+        document.querySelectorAll('.delete-button').forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
+                    var form = button.closest('form');
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form)
+                    }).then(function(response) {
+                        if (response.ok) {
+                            // Remove the row from the table
+                            var row = button.closest('tr');
+                            row.parentNode.removeChild(row);
+                        } else {
+                            alert('Une erreur s\'est produite lors de la suppression.');
+                        }
+                    }).catch(function(error) {
+                        alert('Une erreur s\'est produite : ' + error);
+                    });
+                }
+            });
+        });
+
+        // Event listener for the material selection to check status
+        document.getElementById('materiel').addEventListener('change', function() {
+            var materielRef = this.value;
+            fetch('{{ path('check_materiel_status') }}?reference=' + materielRef)
+                .then(response => response.json())
+                .then(data => {
+                    var statusField = document.getElementById('status');
+                    var permanentField = document.getElementById('permanent');
+                    
+                    if (data.status === 'En utilisation') {
+                        statusField.value = 'affecté';
+                        statusField.disabled = true;
+
+                        permanentField.value = data.permanentId;
+                        permanentField.disabled = true;
+                    } else {
+                        statusField.value = '';
+                        statusField.disabled = false;
+
+                        permanentField.value = '';
+                        permanentField.disabled = false;
+                    }
+                });
+        });
+    });
+</script>
+{% endblock %}

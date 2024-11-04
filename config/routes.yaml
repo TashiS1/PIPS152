@@ -3,3 +3,23 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+materiel_index:
+    path: /materiel
+    controller: App\Controller\MaterielController::index
+
+materiel_create:
+    path: /materiel/create
+    controller: App\Controller\MaterielController::create
+
+materiel_edit:
+    path: /materiel/edit/{id}
+    controller: App\Controller\MaterielController::edit
+
+materiel_delete:
+    path: /materiel/delete/{id}
+    controller: App\Controller\MaterielController::delete
+
+app_register:
+    path: /register
+    controller: App\Controller\RegistrationController::register

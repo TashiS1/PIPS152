@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preuve d'Affectation</title>
+</head>
+<body>
+    <h1>Preuve d'Affectation</h1>
+    <p>ID de l'affectation : {{ affectation.id }}</p>
+    <p>Matériel : {{ affectation.materiel.reference }} - {{ affectation.materiel.type }}</p>
+    <p>Permanent : {{ affectation.permanent.name }}</p>
+    <p>Date d'affectation : {{ affectation.dateAffectation|date('Y-m-d') }}</p>
+    <p>Statut : {{ affectation.status }}</p>
+    <!-- Ajoutez plus de contenu ici selon vos besoins -->
+</body>
+</html>

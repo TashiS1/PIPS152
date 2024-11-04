@@ -1,3 +1,18 @@
 body {
-    background-color: skyblue;
+    background-color: #e62154;
+}
+@import "~bootstrap/scss/bootstrap";
+
+body {
+    background-color: #e62154;
+}
+
+.jumbotron {
+    background-color: #e62154;
+    padding: 2rem 1rem;
+    border-radius: .3rem;
+}
+
+.navbar {
+    margin-bottom: 1rem;
 }
